@@ -1,7 +1,1 @@
-{
-  "functions": {
-    "api/rank.js": {
-      "runtime": "edge"
-    }
-  }
-}
+{}
