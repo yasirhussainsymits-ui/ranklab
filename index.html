@@ -215,7 +215,7 @@ async function fetchRank(keyword, domain, location, gl, hl) {
 let currentProjId=null,isChecking=false,checkAbort=false,checkDone=0,checkTotal=0;
 
 function createProject(name,domain,city,state,country,gl,hl){
-  const id=uid();const loc=[city,state,country].filter(Boolean).map(s=>s.trim()).join(', ');
+  const id=uid();const loc=[city,state,country].filter(Boolean).map(s=>s.trim()).join(',');
   const d=getData();
   d.projects[id]={id,name,domain:normD(domain),location:loc,city:city||'',state:state||'',country,gl,hl,keywords:[],lastChecked:null,history:{},latestRanks:{}};
   saveData(d);return id;
