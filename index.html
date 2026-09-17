@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RankLab — Google Rank Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0e1118;--bg2:#161b26;--bg3:#1d2333;--border:#2a3245;--text:#e2e8f0;--muted:#64748b;--accent:#e8823f;--accent2:#f5a462;--green:#22c55e;--red:#ef4444;--blue:#3b82f6;--gold:#f59e0b;--sw:230px;--r:10px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+button{cursor:pointer;font-family:inherit}
+.app{display:flex;min-height:100vh}
+.sidebar{width:var(--sw);min-width:var(--sw);background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;overflow-y:auto;z-index:10}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.2rem;color:var(--accent);padding:20px 16px 16px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;gap:8px}
+.sb-sec{padding:12px 12px 4px;font-size:.65rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:600}
+.pi{display:flex;align-items:center;padding:9px 12px;margin:2px 8px;border-radius:var(--r);cursor:pointer;transition:background .15s;gap:8px}
+.pi:hover{background:var(--bg3)}.pi.active{background:rgba(232,130,63,.12);border:1px solid rgba(232,130,63,.2)}
+.pn{flex:1;font-size:.85rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pm{font-size:.7rem;color:var(--muted)}.dot{width:8px;height:8px;border-radius:50%;background:var(--border);flex-shrink:0}
+.pi.active .dot{background:var(--accent)}.stale .dot{background:var(--gold)}
+.sb-foot{padding:12px;margin-top:auto;border-top:1px solid var(--border)}
+.btn-new{width:100%;padding:10px;border-radius:var(--r);border:1px dashed var(--border);background:transparent;color:var(--muted);font-size:.85rem;transition:all .15s}
+.btn-new:hover{border-color:var(--accent);color:var(--accent)}
+.main{margin-left:var(--sw);flex:1;display:flex;flex-direction:column;min-height:100vh}
+.empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;padding:40px}
+.empty-icon{font-size:3rem;opacity:.3}.empty h2{font-family:'Syne',sans-serif;font-size:1.4rem}
+.empty p{color:var(--muted);font-size:.9rem;max-width:360px;line-height:1.6}
+.btn-primary{padding:10px 22px;border-radius:var(--r);border:none;background:var(--accent);color:#fff;font-size:.9rem;font-weight:600;transition:opacity .15s}
+.btn-primary:hover{opacity:.85}
+.ph{padding:22px 28px 18px;border-bottom:1px solid var(--border);background:var(--bg2);position:sticky;top:0;z-index:5}
+.ph-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.ph h1{font-family:'Syne',sans-serif;font-weight:800;font-size:1.4rem}
+.dbadge{display:inline-flex;align-items:center;gap:5px;background:rgba(232,130,63,.1);border:1px solid rgba(232,130,63,.2);color:var(--accent2);font-size:.75rem;padding:2px 10px;border-radius:20px;margin-top:6px}
+.pa{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.bsm{padding:7px 14px;border-radius:8px;font-size:.8rem;font-weight:600;border:none;transition:all .15s}
+.bcheck{background:var(--accent);color:#fff}.bcheck:hover{background:var(--accent2)}.bcheck:disabled{opacity:.5;cursor:not-allowed}
+.boutl{background:var(--bg3);color:var(--text);border:1px solid var(--border)}.boutl:hover{border-color:var(--accent);color:var(--accent)}
+.bghost{background:transparent;color:var(--muted);border:1px solid var(--border)}.bghost:hover{border-color:var(--red);color:var(--red)}
+.irow{display:flex;gap:12px;margin-top:12px;flex-wrap:wrap}
+.chip{display:flex;align-items:center;gap:5px;font-size:.75rem;color:var(--muted);background:var(--bg3);padding:4px 10px;border-radius:20px;border:1px solid var(--border)}
+.sbar{display:flex;gap:12px;padding:16px 28px;flex-wrap:wrap;border-bottom:1px solid var(--border)}
+.sc{flex:1;min-width:100px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:12px 16px}
+.sl{font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-weight:600}
+.sv{font-size:1.5rem;font-family:'Syne',sans-serif;font-weight:800;margin-top:4px}
+.good{color:var(--green)}.warn{color:var(--gold)}.bad{color:var(--red)}.neu{color:var(--text)}
+.cprog{padding:10px 28px;background:rgba(232,130,63,.06);border-bottom:1px solid rgba(232,130,63,.15);display:flex;align-items:center;gap:12px;font-size:.84rem;flex-wrap:wrap}
+.pw{flex:1;min-width:80px;height:4px;background:var(--border);border-radius:2px;overflow:hidden}
+.pf{height:100%;background:var(--accent);transition:width .3s;border-radius:2px}
+.spin{display:inline-block;animation:spin .8s linear infinite}
+@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+.banner{margin:14px 28px;padding:12px 16px;border-radius:var(--r);display:flex;align-items:center;gap:12px;font-size:.85rem;flex-wrap:wrap}
+.bstale{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);color:var(--gold)}
+.bbntn{margin-left:auto;padding:5px 12px;border-radius:6px;border:none;font-size:.78rem;font-weight:600;cursor:pointer;background:var(--gold);color:#000}
+.kw-wrap{padding:20px 28px 40px;overflow-x:auto}
+.kt{width:100%;border-collapse:collapse;min-width:560px}
+.kt th{text-align:left;font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600;padding:0 12px 10px;border-bottom:1px solid var(--border)}
+.kt th:first-child{padding-left:0}.kt td{padding:11px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
+.kt td:first-child{padding-left:0}.kt tr:last-child td{border-bottom:none}.kt tr:hover td{background:rgba(255,255,255,.02)}
+.kwn{font-size:.88rem;font-weight:500;max-width:200px;word-break:break-word}
+.kchk{color:var(--muted);font-size:.8rem;display:flex;align-items:center;gap:5px}
+.rb{display:inline-flex;align-items:center;justify-content:center;width:44px;height:28px;border-radius:6px;font-weight:700;font-size:.85rem}
+.r1{background:rgba(245,158,11,.15);color:var(--gold)}.r4{background:rgba(34,197,94,.12);color:var(--green)}
+.r11{background:rgba(59,130,246,.12);color:var(--blue)}.r21{background:rgba(232,130,63,.12);color:var(--accent2)}
+.r51{background:rgba(239,68,68,.1);color:var(--red)}.rno{background:var(--bg3);color:var(--muted);font-size:.75rem;width:auto;padding:0 8px}
+.cup{color:var(--green);font-size:.8rem;font-weight:600}.cdn{color:var(--red);font-size:.8rem;font-weight:600}.cna{color:var(--muted);font-size:.8rem}
+.ka{display:flex;gap:6px;opacity:0;transition:opacity .15s}.kt tr:hover .ka{opacity:1}
+.bic{background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:4px 8px;font-size:.75rem;transition:all .15s}
+.bic:hover{border-color:var(--red);color:var(--red)}.nokw{text-align:center;padding:48px;color:var(--muted)}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:16px;width:100%;max-width:500px;overflow:hidden;box-shadow:0 25px 60px rgba(0,0,0,.5)}
+.mh{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.mh h2{font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700}
+.mx{background:transparent;border:none;color:var(--muted);font-size:1.4rem;line-height:1;cursor:pointer}.mx:hover{color:var(--text)}
+.mb{padding:20px 24px;display:flex;flex-direction:column;gap:12px}.mf{padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end}
+.fg{display:flex;flex-direction:column;gap:6px}
+.fl{font-size:.78rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.fi,.fs{background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Inter',sans-serif;font-size:.88rem;padding:10px 12px;outline:none;transition:border-color .15s;width:100%}
+.fi:focus,.fs:focus{border-color:var(--accent)}.fs option{background:var(--bg3)}.fr{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fh{font-size:.73rem;color:var(--muted)}
+.bcancel{padding:9px 18px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:.85rem;font-weight:600}
+.bcancel:hover{color:var(--text);border-color:var(--text)}
+.bsubmit{padding:9px 18px;border-radius:8px;border:none;background:var(--accent);color:#fff;font-size:.85rem;font-weight:600}
+.bsubmit:hover{background:var(--accent2)}
+.hw{padding:8px 0;max-height:300px;overflow-y:auto}
+.hr{display:grid;grid-template-columns:90px 1fr auto;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);font-size:.82rem}
+.hr:last-child{border-bottom:none}.hb{height:6px;background:var(--bg3);border-radius:3px;overflow:hidden}
+.hbf{height:100%;border-radius:3px;background:var(--accent)}
+.toast{position:fixed;bottom:24px;right:24px;z-index:200;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 18px;font-size:.85rem;max-width:320px;box-shadow:0 8px 32px rgba(0,0,0,.4);transform:translateY(80px);opacity:0;transition:all .3s}
+.toast.show{transform:translateY(0);opacity:1}.toast.success{border-color:var(--green);color:var(--green)}.toast.error{border-color:var(--red);color:var(--red)}.toast.info{border-color:var(--accent);color:var(--accent2)}
+.dbg{font-size:.68rem;color:var(--muted);margin-top:3px;max-width:180px;line-height:1.3;word-break:break-all}
+::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+@media(max-width:680px){.sidebar{width:100%;position:relative;height:auto;border-right:none;border-bottom:1px solid var(--border)}.app{flex-direction:column}.main{margin-left:0}.ph,.kw-wrap,.sbar,.banner,.cprog{padding-left:16px;padding-right:16px}.fr{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="logo">⌕ RankLab</div>
+    <div class="sb-sec">Projects</div>
+    <div id="projList" style="flex:1"></div>
+    <div class="sb-foot"><button class="btn-new" onclick="openModal('newProj')">＋ New Project</button></div>
+  </aside>
+  <main class="main" id="mainArea"></main>
+</div>
+
+<div class="overlay" id="overlay" style="display:none" onclick="if(event.target.id==='overlay')closeModal()">
+  <div class="modal" id="modalNewProj" style="display:none">
+    <div class="mh"><h2>New Project</h2><button class="mx" onclick="closeModal()">×</button></div>
+    <div class="mb">
+      <div class="fg"><label class="fl">Project Name</label><input class="fi" id="np_name" placeholder="My Business" autocomplete="off"></div>
+      <div class="fg"><label class="fl">Domain to Track</label><input class="fi" id="np_domain" placeholder="mybusiness.com" autocomplete="off"><span class="fh">Without www or https</span></div>
+      <div class="fg"><label class="fl">Country</label><select class="fs" id="np_country" onchange="onCountryChange()"></select></div>
+      <div class="fr">
+        <div class="fg"><label class="fl">State / Province</label><select class="fs" id="np_state" onchange="onStateChange()"><option value="">— Any state —</option></select></div>
+        <div class="fg"><label class="fl">City</label><select class="fs" id="np_city" onchange="updHint()"><option value="">— Any city —</option></select></div>
+      </div>
+      <span class="fh" id="np_prev" style="color:var(--accent2)"></span>
+    </div>
+    <div class="mf"><button class="bcancel" onclick="closeModal()">Cancel</button><button class="bsubmit" onclick="submitNewProj()">Create Project</button></div>
+  </div>
+
+  <div class="modal" id="modalAddKw" style="display:none">
+    <div class="mh"><h2>Add Keywords</h2><button class="mx" onclick="closeModal()">×</button></div>
+    <div class="mb">
+      <div class="fg"><label class="fl">Keywords (one per line)</label><textarea class="fi" id="kw_inp" rows="7" placeholder="best restaurants lahore&#10;top hotels islamabad&#10;buy shoes online pakistan" style="resize:vertical"></textarea></div>
+    </div>
+    <div class="mf"><button class="bcancel" onclick="closeModal()">Cancel</button><button class="bsubmit" onclick="submitAddKw()">Add Keywords</button></div>
+  </div>
+
+  <div class="modal" id="modalHistory" style="display:none;max-width:520px">
+    <div class="mh"><h2 id="histTitle">History</h2><button class="mx" onclick="closeModal()">×</button></div>
+    <div class="mb" id="histBody" style="padding-top:8px"></div>
+    <div class="mf"><button class="bcancel" onclick="closeModal()">Close</button></div>
+  </div>
+
+  <div class="modal" id="modalConfirm" style="display:none">
+    <div class="mh"><h2 id="cfmT">Confirm</h2><button class="mx" onclick="closeModal()">×</button></div>
+    <div class="mb"><p id="cfmM" style="color:var(--muted);font-size:.9rem"></p></div>
+    <div class="mf"><button class="bcancel" onclick="closeModal()">Cancel</button><button class="bsubmit" id="cfmBtn" style="background:var(--red)">Delete</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+'use strict';
+
+// ── GEO DATA: Country → States → Cities ──────────────────────────────────────
+const GEO = {
+pk:{n:'Pakistan',gl:'pk',hl:'en',s:{'Punjab':['Lahore','Rawalpindi','Faisalabad','Multan','Gujranwala','Sialkot','Bahawalpur','Sargodha','Sheikhupura','Jhang'],'Sindh':['Karachi','Hyderabad','Sukkur','Larkana','Mirpur Khas','Nawabshah','Jacobabad','Shikarpur'],'Khyber Pakhtunkhwa':['Peshawar','Mardan','Abbottabad','Swat','Kohat','Mansehra','Nowshera','Charsadda'],'Balochistan':['Quetta','Gwadar','Turbat','Khuzdar','Hub','Chaman'],'Islamabad Capital Territory':['Islamabad'],'Azad Kashmir':['Muzaffarabad','Mirpur','Rawalakot','Bagh'],'Gilgit-Baltistan':['Gilgit','Skardu','Hunza']}},
+us:{n:'United States',gl:'us',hl:'en',s:{'Alabama':['Birmingham','Montgomery','Huntsville','Mobile','Tuscaloosa'],'Alaska':['Anchorage','Fairbanks','Juneau'],'Arizona':['Phoenix','Tucson','Mesa','Scottsdale','Tempe','Chandler','Gilbert','Glendale','Peoria'],'Arkansas':['Little Rock','Fort Smith','Fayetteville','Springdale','Jonesboro'],'California':['Los Angeles','San Diego','San Jose','San Francisco','Fresno','Sacramento','Long Beach','Oakland','Bakersfield','Anaheim','Santa Ana','Riverside','Stockton','Irvine','Chula Vista','Fremont','San Bernardino','Modesto','Fontana','Santa Clarita'],'Colorado':['Denver','Colorado Springs','Aurora','Fort Collins','Lakewood','Boulder','Thornton','Arvada'],'Connecticut':['Bridgeport','New Haven','Hartford','Stamford','Waterbury','Norwalk'],'Delaware':['Wilmington','Dover','Newark'],'Florida':['Jacksonville','Miami','Tampa','Orlando','St. Petersburg','Hialeah','Tallahassee','Fort Lauderdale','Port St. Lucie','Cape Coral','Pembroke Pines','Hollywood','Gainesville'],'Georgia':['Atlanta','Augusta','Columbus','Macon','Savannah','Athens','Sandy Springs','Roswell'],'Hawaii':['Honolulu','Hilo','Kailua','Pearl City'],'Idaho':['Boise','Nampa','Meridian','Idaho Falls','Pocatello'],'Illinois':['Chicago','Aurora','Joliet','Naperville','Rockford','Springfield','Elgin','Peoria','Champaign','Waukegan'],'Indiana':['Indianapolis','Fort Wayne','Evansville','South Bend','Carmel','Fishers','Hammond','Bloomington'],'Iowa':['Des Moines','Cedar Rapids','Davenport','Sioux City','Iowa City','Waterloo'],'Kansas':['Wichita','Overland Park','Kansas City','Topeka','Olathe','Lawrence'],'Kentucky':['Louisville','Lexington','Bowling Green','Owensboro','Covington','Richmond'],'Louisiana':['New Orleans','Baton Rouge','Shreveport','Lafayette','Lake Charles','Kenner'],'Maine':['Portland','Lewiston','Bangor','South Portland'],'Maryland':['Baltimore','Frederick','Rockville','Gaithersburg','Bowie','Annapolis'],'Massachusetts':['Boston','Worcester','Springfield','Cambridge','Lowell','Brockton','New Bedford','Quincy'],'Michigan':['Detroit','Grand Rapids','Warren','Sterling Heights','Ann Arbor','Lansing','Flint','Dearborn','Livonia','Westland'],'Minnesota':['Minneapolis','Saint Paul','Rochester','Duluth','Bloomington','Brooklyn Park','Plymouth','Maple Grove'],'Mississippi':['Jackson','Gulfport','Southaven','Biloxi','Hattiesburg'],'Missouri':['Kansas City','Saint Louis','Springfield','Columbia','Independence','Lee\'s Summit','O\'Fallon','St. Joseph'],'Montana':['Billings','Missoula','Great Falls','Bozeman','Butte'],'Nebraska':['Omaha','Lincoln','Bellevue','Grand Island','Kearney'],'Nevada':['Las Vegas','Henderson','Reno','North Las Vegas','Sparks','Carson City'],'New Hampshire':['Manchester','Nashua','Concord','Dover','Rochester'],'New Jersey':['Newark','Jersey City','Paterson','Elizabeth','Trenton','Camden','Clifton','Passaic'],'New Mexico':['Albuquerque','Las Cruces','Rio Rancho','Santa Fe','Roswell'],'New York':['New York City','Buffalo','Rochester','Yonkers','Syracuse','Albany','New Rochelle','Mount Vernon','Schenectady','Utica'],'North Carolina':['Charlotte','Raleigh','Greensboro','Durham','Winston-Salem','Fayetteville','Cary','High Point','Wilmington'],'North Dakota':['Fargo','Bismarck','Grand Forks','Minot'],'Ohio':['Columbus','Cleveland','Cincinnati','Toledo','Akron','Dayton','Parma','Canton','Youngstown','Lorain'],'Oklahoma':['Oklahoma City','Tulsa','Norman','Broken Arrow','Lawton','Edmond','Moore','Midwest City'],'Oregon':['Portland','Salem','Eugene','Gresham','Hillsboro','Beaverton','Bend','Medford'],'Pennsylvania':['Philadelphia','Pittsburgh','Allentown','Erie','Reading','Scranton','Bethlehem','Lancaster','Harrisburg'],'Rhode Island':['Providence','Cranston','Warwick','Pawtucket','East Providence'],'South Carolina':['Columbia','Charleston','North Charleston','Mount Pleasant','Rock Hill','Greenville'],'South Dakota':['Sioux Falls','Rapid City','Aberdeen','Brookings'],'Tennessee':['Nashville','Memphis','Knoxville','Chattanooga','Clarksville','Murfreesboro','Jackson','Franklin'],'Texas':['Houston','San Antonio','Dallas','Austin','Fort Worth','El Paso','Arlington','Corpus Christi','Plano','Laredo','Lubbock','Garland','Irving','Amarillo','Grand Prairie','McKinney','Frisco','Brownsville','Pasadena','Killeen','McAllen','Mesquite','Denton','Waco'],'Utah':['Salt Lake City','West Valley City','Provo','West Jordan','Orem','Sandy','Ogden','St. George','Layton'],'Vermont':['Burlington','South Burlington','Rutland','Barre'],'Virginia':['Virginia Beach','Norfolk','Chesapeake','Richmond','Newport News','Alexandria','Hampton','Roanoke','Portsmouth','Suffolk'],'Washington':['Seattle','Spokane','Tacoma','Vancouver','Bellevue','Kent','Everett','Renton','Spokane Valley','Kirkland','Bellingham','Kennewick'],'West Virginia':['Charleston','Huntington','Parkersburg','Morgantown','Wheeling'],'Wisconsin':['Milwaukee','Madison','Green Bay','Kenosha','Racine','Appleton','Waukesha','Eau Claire'],'Wyoming':['Cheyenne','Casper','Laramie','Gillette','Rock Springs']}},
+gb:{n:'United Kingdom',gl:'gb',hl:'en',s:{'England':['London','Birmingham','Leeds','Sheffield','Bradford','Manchester','Liverpool','Bristol','Coventry','Leicester','Nottingham','Southampton','Newcastle','Brighton','Hull','Portsmouth','Derby','Stoke-on-Trent','Reading','Wolverhampton','Plymouth','Middlesbrough','Bolton','Sunderland','Luton','Preston','Milton Keynes','Swindon','Peterborough','Gloucester','Oxford','Cambridge','Exeter','Blackpool','Norwich','Ipswich','York','Bournemouth','Eastbourne'],'Scotland':['Glasgow','Edinburgh','Aberdeen','Dundee','Inverness','Stirling','Perth','Paisley'],'Wales':['Cardiff','Swansea','Newport','Wrexham','Barry','Neath'],'Northern Ireland':['Belfast','Derry','Lisburn','Newtownabbey','Armagh']}},
+in:{n:'India',gl:'in',hl:'en',s:{'Maharashtra':['Mumbai','Pune','Nagpur','Thane','Nashik','Aurangabad','Solapur','Kolhapur'],'Delhi':['New Delhi','Delhi'],'Karnataka':['Bengaluru','Mysuru','Hubli','Mangaluru','Belagavi','Davanagere'],'Tamil Nadu':['Chennai','Coimbatore','Madurai','Tiruchirappalli','Salem','Tirunelveli','Vellore'],'Telangana':['Hyderabad','Warangal','Nizamabad','Karimnagar','Khammam'],'Gujarat':['Ahmedabad','Surat','Vadodara','Rajkot','Bhavnagar','Jamnagar'],'Uttar Pradesh':['Lucknow','Kanpur','Agra','Varanasi','Allahabad','Ghaziabad','Noida','Meerut','Bareilly','Aligarh'],'Rajasthan':['Jaipur','Jodhpur','Udaipur','Kota','Ajmer','Bikaner'],'West Bengal':['Kolkata','Howrah','Asansol','Siliguri','Durgapur','Bardhaman'],'Punjab':['Ludhiana','Amritsar','Jalandhar','Patiala','Bathinda'],'Haryana':['Faridabad','Gurgaon','Panipat','Ambala','Yamunanagar','Rohtak'],'Bihar':['Patna','Gaya','Bhagalpur','Muzaffarpur','Purnia'],'Madhya Pradesh':['Indore','Bhopal','Gwalior','Jabalpur','Ujjain'],'Andhra Pradesh':['Visakhapatnam','Vijayawada','Guntur','Nellore','Tirupati'],'Odisha':['Bhubaneswar','Cuttack','Rourkela','Sambalpur'],'Kerala':['Thiruvananthapuram','Kochi','Kozhikode','Thrissur','Kollam'],'Jharkhand':['Ranchi','Jamshedpur','Dhanbad','Bokaro'],'Assam':['Guwahati','Silchar','Dibrugarh','Jorhat'],'Uttarakhand':['Dehradun','Haridwar','Roorkee','Nainital'],'Himachal Pradesh':['Shimla','Manali','Dharamshala','Kullu'],'Goa':['Panaji','Margao','Vasco da Gama']}},
+ca:{n:'Canada',gl:'ca',hl:'en',s:{'Ontario':['Toronto','Ottawa','Mississauga','Brampton','Hamilton','London','Markham','Vaughan','Kitchener','Windsor','Oshawa','Barrie'],'Quebec':['Montreal','Quebec City','Laval','Gatineau','Longueuil','Sherbrooke','Saguenay','Trois-Rivieres'],'British Columbia':['Vancouver','Surrey','Burnaby','Richmond','Kelowna','Abbotsford','Victoria','Coquitlam','Langley'],'Alberta':['Calgary','Edmonton','Red Deer','Lethbridge','St. Albert','Medicine Hat','Grande Prairie'],'Manitoba':['Winnipeg','Brandon','Steinbach','Thompson'],'Saskatchewan':['Saskatoon','Regina','Prince Albert','Moose Jaw'],'Nova Scotia':['Halifax','Sydney','Truro','New Glasgow'],'New Brunswick':['Moncton','Saint John','Fredericton','Miramichi'],'Newfoundland and Labrador':['St. John\'s','Mount Pearl','Corner Brook'],'Prince Edward Island':['Charlottetown','Summerside']}},
+au:{n:'Australia',gl:'au',hl:'en',s:{'New South Wales':['Sydney','Newcastle','Wollongong','Central Coast','Maitland','Albury','Wagga Wagga','Canberra'],'Victoria':['Melbourne','Geelong','Ballarat','Bendigo','Shepparton','Mildura','Warrnambool'],'Queensland':['Brisbane','Gold Coast','Sunshine Coast','Townsville','Cairns','Toowoomba','Mackay','Rockhampton'],'Western Australia':['Perth','Fremantle','Mandurah','Bunbury','Geraldton','Kalgoorlie'],'South Australia':['Adelaide','Mount Gambier','Whyalla','Port Augusta','Victor Harbor'],'Tasmania':['Hobart','Launceston','Devonport','Burnie'],'Northern Territory':['Darwin','Alice Springs','Katherine'],'Australian Capital Territory':['Canberra','Queanbeyan']}},
+de:{n:'Germany',gl:'de',hl:'de',s:{'Berlin':['Berlin'],'Hamburg':['Hamburg'],'Bavaria':['Munich','Nuremberg','Augsburg','Regensburg','Würzburg','Fürth','Erlangen','Ingolstadt'],'Baden-Württemberg':['Stuttgart','Mannheim','Karlsruhe','Freiburg','Heidelberg','Heilbronn','Ulm','Pforzheim'],'North Rhine-Westphalia':['Cologne','Düsseldorf','Dortmund','Essen','Duisburg','Bochum','Wuppertal','Bielefeld','Bonn','Münster','Gelsenkirchen','Aachen'],'Hesse':['Frankfurt','Wiesbaden','Kassel','Darmstadt','Offenbach'],'Saxony':['Dresden','Leipzig','Chemnitz','Zwickau'],'Lower Saxony':['Hanover','Braunschweig','Osnabrück','Oldenburg','Wolfsburg','Göttingen'],'Rhineland-Palatinate':['Mainz','Ludwigshafen','Koblenz','Trier','Kaiserslautern'],'Saxony-Anhalt':['Magdeburg','Halle','Dessau'],'Brandenburg':['Potsdam','Cottbus','Brandenburg an der Havel'],'Thuringia':['Erfurt','Jena','Gera','Weimar'],'Schleswig-Holstein':['Kiel','Lübeck','Flensburg'],'Mecklenburg-Vorpommern':['Rostock','Schwerin','Stralsund'],'Saarland':['Saarbrücken'],'Bremen':['Bremen','Bremerhaven']}},
+fr:{n:'France',gl:'fr',hl:'fr',s:{'Île-de-France':['Paris','Boulogne-Billancourt','Saint-Denis','Argenteuil','Montreuil','Versailles','Nanterre','Vitry-sur-Seine'],'Auvergne-Rhône-Alpes':['Lyon','Grenoble','Saint-Étienne','Clermont-Ferrand','Annecy','Chambéry'],'Nouvelle-Aquitaine':['Bordeaux','Limoges','Poitiers','Pau','La Rochelle','Bayonne'],'Occitanie':['Toulouse','Montpellier','Nîmes','Perpignan','Narbonne','Carcassonne'],'Provence-Alpes-Côte d\'Azur':['Marseille','Nice','Toulon','Aix-en-Provence','Antibes','Cannes'],'Grand Est':['Strasbourg','Reims','Metz','Mulhouse','Nancy','Colmar'],'Hauts-de-France':['Lille','Amiens','Roubaix','Tourcoing','Dunkirk'],'Normandie':['Rouen','Caen','Le Havre','Cherbourg'],'Pays de la Loire':['Nantes','Angers','Le Mans','Saint-Nazaire','La Roche-sur-Yon'],'Bretagne':['Rennes','Brest','Quimper','Lorient','Vannes'],'Centre-Val de Loire':['Tours','Orléans','Bourges','Chartres'],'Bourgogne-Franche-Comté':['Dijon','Besançon','Belfort','Chalon-sur-Saône'],'Corse':['Ajaccio','Bastia']}},
+ae:{n:'UAE',gl:'ae',hl:'en',s:{'Dubai':['Dubai','Deira','Bur Dubai','Jumeirah','Downtown Dubai','Business Bay','Dubai Marina','Jebel Ali'],'Abu Dhabi':['Abu Dhabi','Al Ain','Khalifa City','Musaffah','Ruwais'],'Sharjah':['Sharjah','Khor Fakkan','Kalba'],'Ajman':['Ajman'],'Ras Al Khaimah':['Ras Al Khaimah','Al Jazirah Al Hamra'],'Fujairah':['Fujairah','Dibba Al Fujairah'],'Umm Al Quwain':['Umm Al Quwain']}},
+sa:{n:'Saudi Arabia',gl:'sa',hl:'ar',s:{'Riyadh':['Riyadh','Al Kharj','Diriyah','Al Majmaah'],'Makkah':['Jeddah','Mecca','Taif','Rabigh'],'Al-Madinah':['Medina','Yanbu','Al Ula'],'Eastern Province':['Dammam','Dhahran','Al-Khobar','Al Ahsa','Jubail','Ras Tanura'],'Asir':['Abha','Khamis Mushait','Bisha'],'Tabuk':['Tabuk','Al Wajh'],'Hail':['Hail','Baqaa'],'Al Jawf':['Sakaka','Domat Al Jandal'],'Najran':['Najran'],'Al Bahah':['Al Bahah','Baljurashi'],'Northern Borders':['Arar','Rafha']}},
+bd:{n:'Bangladesh',gl:'bd',hl:'en',s:{'Dhaka Division':['Dhaka','Narayanganj','Gazipur','Tangail','Manikganj','Munshiganj','Narsingdi'],'Chattogram Division':['Chittagong','Comilla','Cox\'s Bazar','Feni','Noakhali','Brahmanbaria'],'Rajshahi Division':['Rajshahi','Bogra','Pabna','Natore','Naogaon','Sirajganj'],'Khulna Division':['Khulna','Jessore','Satkhira','Bagerhat','Kushtia'],'Sylhet Division':['Sylhet','Moulvibazar','Habiganj','Sunamganj'],'Barishal Division':['Barishal','Patuakhali','Bhola','Pirojpur'],'Mymensingh Division':['Mymensingh','Netrokona','Jamalpur','Sherpur'],'Rangpur Division':['Rangpur','Dinajpur','Kurigram','Gaibandha','Nilphamari']}},
+tr:{n:'Turkey',gl:'tr',hl:'tr',s:{'Istanbul':['Istanbul','Kadıköy','Beşiktaş','Üsküdar','Beyoğlu','Fatih','Bakırköy'],'Ankara':['Ankara','Çankaya','Keçiören','Etimesgut','Sincan'],'Izmir':['Izmir','Bornova','Karşıyaka','Konak','Buca'],'Bursa':['Bursa','Osmangazi','Nilüfer','Yıldırım'],'Antalya':['Antalya','Muratpaşa','Kepez','Alanya','Manavgat'],'Adana':['Adana','Seyhan','Çukurova','Yüreğir'],'Konya':['Konya','Selçuklu','Karatay','Meram'],'Gaziantep':['Gaziantep','Şahinbey','Şehitkamil'],'Kocaeli':['Izmit','Gebze','Körfez','Derince'],'Mersin':['Mersin','Yenişehir','Tarsus']}},
+nl:{n:'Netherlands',gl:'nl',hl:'nl',s:{'North Holland':['Amsterdam','Haarlem','Zaandam','Alkmaar','Hilversum','Purmerend'],'South Holland':['Rotterdam','The Hague','Leiden','Delft','Dordrecht','Zoetermeer','Westland'],'Utrecht':['Utrecht','Amersfoort','Zeist','Nieuwegein','Houten'],'North Brabant':['Eindhoven','Breda','Tilburg','\'s-Hertogenbosch','Helmond'],'Gelderland':['Nijmegen','Arnhem','Apeldoorn','Ede','Zwolle'],'Overijssel':['Enschede','Deventer','Almelo','Hengelo'],'Friesland':['Leeuwarden','Sneek','Drachten'],'Groningen':['Groningen','Veendam','Hoogezand'],'Drenthe':['Assen','Emmen','Hoogeveen'],'Zeeland':['Middelburg','Vlissingen','Terneuzen'],'Limburg':['Maastricht','Venlo','Sittard','Roermond'],'Flevoland':['Almere','Lelystad','Dronten']}},
+es:{n:'Spain',gl:'es',hl:'es',s:{'Community of Madrid':['Madrid','Alcalá de Henares','Leganés','Getafe','Alcorcón','Torrejón de Ardoz','Fuenlabrada','Móstoles'],'Catalonia':['Barcelona','Hospitalet de Llobregat','Badalona','Terrassa','Sabadell','Tarragona','Lleida','Girona','Mataró'],'Valencian Community':['Valencia','Alicante','Elche','Castellón de la Plana','Torrent','Orihuela'],'Andalusia':['Seville','Málaga','Córdoba','Granada','Almería','Jerez de la Frontera','Cádiz','Marbella'],'Basque Country':['Bilbao','Vitoria-Gasteiz','San Sebastián','Barakaldo','Getxo'],'Canary Islands':['Las Palmas de Gran Canaria','Santa Cruz de Tenerife','San Cristóbal de La Laguna'],'Castile and León':['Valladolid','Burgos','Salamanca','León','Segovia','Ávila','Soria'],'Galicia':['Vigo','La Coruña','Ourense','Pontevedra','Santiago de Compostela'],'Castilla-La Mancha':['Albacete','Ciudad Real','Guadalajara','Toledo','Cuenca'],'Aragon':['Zaragoza','Huesca','Teruel'],'Extremadura':['Badajoz','Cáceres','Mérida'],'Asturias':['Oviedo','Gijón','Avilés'],'Navarre':['Pamplona','Tudela'],'Murcia':['Murcia','Cartagena','Lorca'],'Balearic Islands':['Palma','Ibiza','Mahón'],'La Rioja':['Logroño'],'Cantabria':['Santander'],'Ceuta':['Ceuta'],'Melilla':['Melilla']}},
+br:{n:'Brazil',gl:'br',hl:'pt',s:{'São Paulo':['São Paulo','Guarulhos','Campinas','São Bernardo do Campo','Santo André','Osasco','Sorocaba','Ribeirão Preto','São José dos Campos','Mauá'],'Rio de Janeiro':['Rio de Janeiro','São Gonçalo','Niterói','Duque de Caxias','Nova Iguaçu','Petrópolis','Volta Redonda'],'Minas Gerais':['Belo Horizonte','Uberlândia','Contagem','Juiz de Fora','Betim','Montes Claros'],'Bahia':['Salvador','Feira de Santana','Vitória da Conquista','Camaçari','Itabuna'],'Paraná':['Curitiba','Londrina','Maringá','Ponta Grossa','Cascavel'],'Rio Grande do Sul':['Porto Alegre','Caxias do Sul','Canoas','Pelotas','Santa Maria'],'Pernambuco':['Recife','Olinda','Caruaru','Petrolina','Paulista'],'Ceará':['Fortaleza','Caucaia','Juazeiro do Norte','Maracanaú'],'Pará':['Belém','Ananindeua','Santarém','Marabá'],'Santa Catarina':['Florianópolis','Joinville','Blumenau','São José','Chapecó'],'Goiás':['Goiânia','Aparecida de Goiânia','Anápolis','Rio Verde'],'Maranhão':['São Luís','Imperatriz','Timon','Caxias'],'Amazonas':['Manaus','Parintins','Itacoatiara'],'Espírito Santo':['Vitória','Vila Velha','Cariacica','Serra'],'Mato Grosso do Sul':['Campo Grande','Dourados','Três Lagoas'],'Mato Grosso':['Cuiabá','Várzea Grande','Rondonópolis'],'Rondônia':['Porto Velho','Ji-Paraná','Ariquemes'],'Tocantins':['Palmas','Araguaína','Gurupi'],'Piauí':['Teresina','Parnaíba','Picos'],'Rio Grande do Norte':['Natal','Mossoró','Parnamirim'],'Paraíba':['João Pessoa','Campina Grande','Patos'],'Alagoas':['Maceió','Arapiraca','Palmeira dos Índios'],'Sergipe':['Aracaju','Nossa Senhora do Socorro','Lagarto'],'Roraima':['Boa Vista'],'Amapá':['Macapá','Santana'],'Acre':['Rio Branco','Cruzeiro do Sul']}},
+mx:{n:'Mexico',gl:'mx',hl:'es',s:{'Mexico City':['Mexico City','Iztapalapa','Ecatepec','Naucalpan','Tlalnepantla'],'Jalisco':['Guadalajara','Zapopan','Tlaquepaque','Tonalá','Puerto Vallarta'],'Nuevo León':['Monterrey','Guadalupe','San Nicolás de los Garza','Apodaca','Juárez','San Pedro Garza García'],'Puebla':['Puebla','Tehuacán','San Andrés Cholula','Atlixco'],'Guanajuato':['León','Irapuato','Celaya','Salamanca','Guanajuato'],'Chihuahua':['Ciudad Juárez','Chihuahua','Delicias','Cuauhtémoc'],'Baja California':['Tijuana','Mexicali','Ensenada','Tecate'],'Veracruz':['Veracruz','Xalapa','Coatzacoalcos','Poza Rica','Orizaba'],'Michoacán':['Morelia','Uruapan','Lázaro Cárdenas','Zamora'],'Sonora':['Hermosillo','Ciudad Obregón','Nogales','San Luis Río Colorado'],'Sinaloa':['Culiacán','Mazatlán','Los Mochis','Guasave'],'Oaxaca':['Oaxaca','Salina Cruz','Juchitán de Zaragoza'],'Guerrero':['Acapulco','Chilpancingo','Iguala','Zihuatanejo'],'Tamaulipas':['Reynosa','Tampico','Matamoros','Nuevo Laredo','Victoria'],'Hidalgo':['Pachuca','Tulancingo','Tula de Allende'],'San Luis Potosí':['San Luis Potosí','Soledad de Graciano Sánchez','Matehuala'],'Tabasco':['Villahermosa','Cárdenas','Macuspana'],'Yucatán':['Mérida','Valladolid','Progreso'],'Quintana Roo':['Cancún','Playa del Carmen','Chetumal','Tulum'],'Coahuila':['Torreón','Saltillo','Monclova','Piedras Negras'],'Estado de México':['Ecatepec','Nezahualcóyotl','Toluca','Tlalnepantla','Chimalhuacán'],'Querétaro':['Querétaro','San Juan del Río','El Marqués'],'Morelos':['Cuernavaca','Jiutepec','Cuautla','Temixco'],'Durango':['Durango','Gómez Palacio','Lerdo'],'Zacatecas':['Zacatecas','Guadalupe','Fresnillo'],'Aguascalientes':['Aguascalientes','Jesús María','Calvillo'],'Nayarit':['Tepic','Bahía de Banderas','Santiago Ixcuintla'],'Campeche':['Campeche','Ciudad del Carmen'],'Tlaxcala':['Tlaxcala','Apizaco','San Pablo del Monte'],'Colima':['Colima','Manzanillo','Tecomán'],'Baja California Sur':['La Paz','Los Cabos','Comondú'],'Chiapas':['Tuxtla Gutiérrez','Tapachula','San Cristóbal de las Casas'],'Veracruz':['Veracruz','Xalapa','Coatzacoalcos']}},
+za:{n:'South Africa',gl:'za',hl:'en',s:{'Gauteng':['Johannesburg','Pretoria','Soweto','Ekurhuleni','Tshwane','Centurion','Sandton','Randburg','Midrand','Germiston'],'Western Cape':['Cape Town','Stellenbosch','Paarl','George','Mossel Bay','Knysna','Worcester','Bellville'],'KwaZulu-Natal':['Durban','Pietermaritzburg','Newcastle','Richards Bay','Ladysmith','Pinetown','Umlazi'],'Eastern Cape':['Port Elizabeth','East London','Uitenhage','Mthatha','King William\'s Town'],'Free State':['Bloemfontein','Welkom','Bethlehem','Sasolburg','Kroonstad'],'Mpumalanga':['Mbombela','Witbank','Middelburg','Secunda'],'Limpopo':['Polokwane','Mokopane','Thohoyandou','Louis Trichardt'],'North West':['Rustenburg','Mahikeng','Klerksdorp','Potchefstroom'],'Northern Cape':['Kimberley','Upington','Springbok'],'Namibia':['Windhoek','Walvis Bay','Swakopmund']}},
+ng:{n:'Nigeria',gl:'ng',hl:'en',s:{'Lagos':['Lagos','Ikeja','Surulere','Mushin','Alimosho','Ojo','Kosofe','Lekki','Victoria Island','Ikorodu'],'Federal Capital Territory':['Abuja','Gwagwalada','Kubwa','Nyanya','Lugbe'],'Kano':['Kano','Fagge','Dala','Gwale','Kumbotso','Tarauni'],'Rivers':['Port Harcourt','Obio-Akpor','Okrika','Eleme','Bonny'],'Oyo':['Ibadan','Ogbomosho','Oyo','Iseyin','Saki'],'Kaduna':['Kaduna','Zaria','Kafanchan','Kagoro'],'Anambra':['Awka','Onitsha','Nnewi','Ekwulobia'],'Delta':['Asaba','Warri','Ughelli','Sapele'],'Edo':['Benin City','Auchi','Ekpoma','Uromi'],'Enugu':['Enugu','Nsukka','Oji River','Agwu'],'Katsina':['Katsina','Daura','Funtua','Mashi'],'Borno':['Maiduguri','Bama','Gwoza','Kukawa'],'Imo':['Owerri','Orlu','Okigwe','Oguta'],'Abia':['Aba','Umuahia','Ohafia'],'Cross River':['Calabar','Ikom','Ogoja'],'Bauchi':['Bauchi','Azare','Misau'],'Niger':['Minna','Suleja','Kontagora','Bida'],'Ogun':['Abeokuta','Sagamu','Ijebu-Ode','Ota'],'Osun':['Osogbo','Ile-Ife','Ilesa','Ede'],'Sokoto':['Sokoto','Tambuwal','Wamakko'],'Plateau':['Jos','Shendam','Pankshin'],'Akwa Ibom':['Uyo','Eket','Ikot Ekpene'],'Benue':['Makurdi','Gboko','Otukpo'],'Ekiti':['Ado Ekiti','Ikere-Ekiti','Ikole-Ekiti'],'Nassarawa':['Lafia','Keffi','Akwanga'],'Kwara':['Ilorin','Offa','Omu-Aran'],'Ondo':['Akure','Ondo','Owo','Okitipupa'],'Taraba':['Jalingo','Wukari','Bali'],'Zamfara':['Gusau','Anka','Zurmi'],'Yobe':['Damaturu','Gashua','Nguru'],'Kebbi':['Birnin Kebbi','Argungu','Yelwa'],'Bayelsa':['Yenagoa','Ogbia','Sagbama'],'Ebonyi':['Abakaliki','Afikpo','Onueke'],'Gombe':['Gombe','Kaltungo','Billiri'],'Jigawa':['Dutse','Hadejia','Gumel'],'Adamawa':['Yola','Mubi','Jimeta']}},
+eg:{n:'Egypt',gl:'eg',hl:'ar',s:{'Cairo Governorate':['Cairo','Heliopolis','Maadi','Nasr City','New Cairo'],'Giza Governorate':['Giza','6th of October City','Sheikh Zayed'],'Alexandria Governorate':['Alexandria','Borg El Arab'],'Dakahlia':['Mansoura','Talkha','Mit Ghamr'],'Sharkia':['Zagazig','10th of Ramadan City','Belbeis'],'Qalyubia':['Benha','Khanka','Shubra El-Kheima'],'Menoufia':['Shibin El-Kom','Menouf'],'Beheira':['Damanhur','Kafr El-Dawwar'],'Gharbiya':['Tanta','El-Mahalla El-Kubra','Kafr El-Zayat'],'Minya':['Minya','Mallawi','Samalut'],'Sohag':['Sohag','Akhmim','Girga'],'Assiut':['Assiut','Abnub','Manfalut'],'Fayoum':['Fayoum','Tamiya','Sinnuris'],'Beni Suef':['Beni Suef','Al Fashn'],'Luxor':['Luxor','Esna'],'Aswan':['Aswan','Kom Ombo','Edfu'],'Qena':['Qena','Nag Hammadi','Luxor'],'Suez':['Suez'],'Ismailia':['Ismailia','Fayid'],'Port Said':['Port Said'],'Damietta':['Damietta','Ras el Bar'],'Kafr el-Sheikh':['Kafr el-Sheikh','Desouk'],'Matrouh':['Mersa Matruh','Siwa'],'Red Sea':['Hurghada','Safaga','El Quseir'],'South Sinai':['Sharm El-Sheikh','Dahab','Nuweiba'],'North Sinai':['El Arish','Rafah'],'New Valley':['Kharga','Dakhla']}},
+pk:{n:'Pakistan',gl:'pk',hl:'en',s:{'Punjab':['Lahore','Rawalpindi','Faisalabad','Multan','Gujranwala','Sialkot','Bahawalpur','Sargodha','Sheikhupura','Jhang','Rahim Yar Khan','Sahiwal','Okara','Kasur','Gujrat','Wazirabad','Narowal','Chiniot','Khanewal','Vehari'],'Sindh':['Karachi','Hyderabad','Sukkur','Larkana','Mirpur Khas','Nawabshah','Jacobabad','Shikarpur','Khairpur','Dadu','Badin','Thatta','Tando Adam'],'Khyber Pakhtunkhwa':['Peshawar','Mardan','Abbottabad','Swat','Kohat','Mansehra','Nowshera','Charsadda','Dera Ismail Khan','Bannu','Haripur','Swabi','Battagram'],'Balochistan':['Quetta','Gwadar','Turbat','Khuzdar','Hub','Chaman','Loralai','Kharan','Sibi','Mastung'],'Islamabad Capital Territory':['Islamabad'],'Azad Kashmir':['Muzaffarabad','Mirpur','Rawalakot','Bagh','Bhimber','Kotli'],'Gilgit-Baltistan':['Gilgit','Skardu','Hunza','Ghanche','Ghizer']}},
+};
+// Fill missing entries
+['kw','qa','bh','om','jo','lb','sy','iq','ir','af'].forEach(code=>{
+  const info={kw:{n:'Kuwait',gl:'kw',hl:'ar',s:{'Kuwait Governorate':['Kuwait City','Salmiya','Hawalli'],'Ahmadi':['Ahmadi','Fahaheel','Abu Halifa'],'Farwaniya':['Farwaniya','Sabah Al-Salem'],'Mubarak Al-Kabeer':['Mubarak Al-Kabeer','Adan'],'Jahra':['Jahra'],'Sabah Al-Ahmad':['Sabah Al-Ahmad City']}},qa:{n:'Qatar',gl:'qa',hl:'ar',s:{'Doha':['Doha','Al Wakrah','Al Khor','Dukhan','Mesaieed']}},bh:{n:'Bahrain',gl:'bh',hl:'ar',s:{'Capital':['Manama','Muharraq','Riffa','Isa Town','Hamad Town']}},om:{n:'Oman',gl:'om',hl:'ar',s:{'Muscat':['Muscat','Muttrah','Bawshar','Seeb','Al Amerat'],'Dhofar':['Salalah'],'Al Batinah':['Sohar','Barka','Rustaq']}},jo:{n:'Jordan',gl:'jo',hl:'ar',s:{'Amman':['Amman','Zarqa','Balqa'],'Irbid':['Irbid','Ajloun'],'Zarqa':['Zarqa']}},lb:{n:'Lebanon',gl:'lb',hl:'ar',s:{'Beirut':['Beirut','Tripoli','Sidon','Tyre']}},sy:{n:'Syria',gl:'sy',hl:'ar',s:{'Damascus':['Damascus','Aleppo','Homs','Hama','Latakia']}},iq:{n:'Iraq',gl:'iq',hl:'ar',s:{'Baghdad':['Baghdad','Basra','Mosul','Erbil','Sulaymaniyah','Najaf','Karbala','Kirkuk']}},ir:{n:'Iran',gl:'ir',hl:'fa',s:{'Tehran':['Tehran','Mashhad','Isfahan','Karaj','Shiraz','Ahvaz','Tabriz','Qom']}},af:{n:'Afghanistan',gl:'af',hl:'ps',s:{'Kabul':['Kabul','Kandahar','Herat','Mazar-i-Sharif','Jalalabad','Kunduz']}}};
+  if(info[code]) GEO[code]=info[code];
+});
+
+const COUNTRIES = Object.entries(GEO).map(([k,v])=>({code:k,...v}));
+
+// ── STORAGE ──────────────────────────────────────────────────────────────────
+const SK='ranklab_v5';
+function getData(){try{return JSON.parse(localStorage.getItem(SK))||{projects:{}};}catch{return{projects:{}};}}
+function saveData(d){try{localStorage.setItem(SK,JSON.stringify(d));}catch{}}
+function uid(){return'p'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function ea(s){return String(s||'').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+function relTime(ts){const m=Math.floor((Date.now()-ts)/60000);if(m<1)return'just now';if(m<60)return m+'m ago';const h=Math.floor(m/60);if(h<24)return h+'h ago';return Math.floor(h/24)+'d ago';}
+function today(){return new Date().toISOString().slice(0,10);}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+function normD(d){return(d||'').replace(/^(https?:\/\/)?(www\d*\.)?/,'').toLowerCase().split('/')[0].split('?')[0].trim();}
+
+// ── UULE ─────────────────────────────────────────────────────────────────────
+const USEC='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
+function makeUULE(loc){
+  try{const l=loc.trim();if(!l)return'';const bytes=new TextEncoder().encode(l);const b64=btoa(String.fromCharCode(...bytes));return'w+CAIQICI'+USEC[bytes.length%64]+b64;}catch{return'';}
+}
+
+// ── API CALL ──────────────────────────────────────────────────────────────────
+async function fetchRank(keyword,domain,location,gl,hl){
+  const uule=makeUULE(location);
+  const params=new URLSearchParams({q:keyword,domain,gl:gl||'us',hl:hl||'en'});
+  if(uule)params.set('uule',uule);
+  const res=await Promise.race([
+    fetch('/api/rank?'+params),
+    new Promise((_,rej)=>setTimeout(()=>rej(new Error('Request timed out')),25000))
+  ]);
+  if(!res.ok){const err=await res.json().catch(()=>({error:'HTTP '+res.status}));throw new Error(err.error||'API error '+res.status);}
+  const data=await res.json();
+  if(data.error)throw new Error(data.error);
+  return data;
+}
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let currentProjId=null,isChecking=false,checkAbort=false,checkDone=0,checkTotal=0;
+
+// ── PROJECT CRUD ──────────────────────────────────────────────────────────────
+function createProject(name,domain,city,state,countryCode,gl,hl){
+  const id=uid();
+  const cobj=GEO[countryCode];
+  const countryName=cobj?cobj.n:countryCode;
+  const loc=[city,state,countryName].filter(Boolean).map(s=>s.trim()).join(',');
+  const d=getData();
+  d.projects[id]={id,name,domain:normD(domain),location:loc,city:city||'',state:state||'',country:countryName,countryCode,gl,hl,keywords:[],lastChecked:null,history:{},latestRanks:{}};
+  saveData(d);return id;
+}
+function deleteProject(id){
+  const d=getData();delete d.projects[id];saveData(d);
+  if(currentProjId===id){currentProjId=null;const ids=Object.keys(d.projects);ids.length?selectProject(ids[0]):renderEmpty();}
+  renderSidebar();
+}
+function addKeywords(pid,kws){
+  const d=getData();const p=d.projects[pid];if(!p)return;
+  for(const k of kws){const kl=k.trim().toLowerCase();if(kl&&!p.keywords.includes(kl)){p.keywords.push(kl);if(!p.history[kl])p.history[kl]=[];}}
+  saveData(d);
+}
+function removeKeyword(pid,kw){
+  const d=getData();const p=d.projects[pid];if(!p)return;
+  p.keywords=p.keywords.filter(k=>k!==kw);delete p.history[kw];delete p.latestRanks[kw];saveData(d);
+}
+function saveRankResult(pid,kw,pos){
+  const d=getData();const p=d.projects[pid];if(!p)return;
+  const dt=today();
+  if(!p.history[kw])p.history[kw]=[];
+  p.history[kw]=p.history[kw].filter(e=>e.date!==dt);
+  p.history[kw].push({date:dt,pos});
+  p.history[kw].sort((a,b)=>a.date.localeCompare(b.date));
+  if(p.history[kw].length>30)p.history[kw]=p.history[kw].slice(-30);
+  const hist=p.history[kw];let change=null;
+  if(hist.length>=2){const pv=hist[hist.length-2].pos;const cv=hist[hist.length-1].pos;if(pv!=null&&cv!=null)change=pv-cv;}
+  p.latestRanks[kw]={pos,date:dt,change,checkedAt:Date.now()};
+  saveData(d);
+}
+
+// ── CHECK RANKINGS ────────────────────────────────────────────────────────────
+async function checkAllKeywords(pid){
+  if(isChecking)return;
+  const d=getData();const p=d.projects[pid];if(!p||!p.keywords.length)return;
+  isChecking=true;checkAbort=false;checkDone=0;checkTotal=p.keywords.length;
+  renderProject(pid,true);
+  for(let i=0;i<p.keywords.length;i++){
+    if(checkAbort)break;
+    const kw=p.keywords[i];
+    setCellStatus(kw,'checking');
+    try{
+      const r=await fetchRank(kw,p.domain,p.location,p.gl,p.hl);
+      saveRankResult(pid,kw,r.pos);
+      setCellStatus(kw,'done',r.pos,r.total,r.top10||r.top5);
+    }catch(e){
+      console.error(kw,e.message);
+      setCellStatus(kw,'error',null,0,[],e.message);
+    }
+    checkDone++;
+    const bar=document.getElementById('pf');const lbl=document.getElementById('pl');
+    if(bar)bar.style.width=Math.round(checkDone/checkTotal*100)+'%';
+    if(lbl)lbl.textContent=`Checking ${checkDone} / ${checkTotal}…`;
+    if(i<p.keywords.length-1)await sleep(2500);
+  }
+  const d2=getData();if(d2.projects[pid]){d2.projects[pid].lastChecked=Date.now();saveData(d2);}
+  isChecking=false;
+  toast('Rank check complete!','success');
+  renderSidebar();renderProject(pid,false);
+}
+
+function setCellStatus(kw,status,pos,total,tops,err){
+  const row=document.querySelector(`tr[data-kw="${CSS.escape(kw)}"]`);if(!row)return;
+  const cell=row.querySelector('.rc');if(!cell)return;
+  if(status==='checking'){cell.innerHTML=`<span class="kchk"><span class="spin">↻</span> checking…</span>`;}
+  else if(status==='done'){
+    if(pos){cell.innerHTML=rankBadge(pos);row.style.background='rgba(34,197,94,.05)';setTimeout(()=>row.style.background='',800);}
+    else{
+      const hint=(tops&&tops.length)?`Parsed: ${tops.slice(0,5).join(', ')}`:(total>0?`${total} results, your domain not found`:'Google returned 0 results — possible CAPTCHA');
+      cell.innerHTML=`<span class="rb rno" title="${ea(hint)}">&gt;100</span><div class="dbg">${esc(hint.slice(0,80))}</div>`;
+    }
+  }else{
+    cell.innerHTML=`<span class="rb rno">error</span><div class="dbg" style="color:var(--red)">${esc((err||'').slice(0,80))}</div>`;
+  }
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function renderEmpty(){document.getElementById('mainArea').innerHTML=`<div class="empty"><div class="empty-icon">📊</div><h2>Start Tracking Rankings</h2><p>Create a project, add keywords, and RankLab checks your Google positions.</p><button class="btn-primary" onclick="openModal('newProj')">Create First Project</button></div>`;}
+
+function renderSidebar(){
+  const d=getData();const projs=Object.values(d.projects);
+  document.getElementById('projList').innerHTML=!projs.length?`<div style="padding:16px 12px;font-size:.8rem;color:var(--muted)">No projects yet</div>`:projs.map(p=>{const active=p.id===currentProjId;const stale=isStale(p);return`<div class="pi${active?' active':''}${stale?' stale':''}" onclick="selectProject('${p.id}')"><div class="dot"></div><div style="flex:1;min-width:0"><div class="pn">${esc(p.name)}</div><div class="pm">${p.keywords.length} kw · ${p.lastChecked?relTime(p.lastChecked):'Never'}</div></div></div>`;}).join('');
+}
+function isStale(p){return!p.lastChecked||(Date.now()-p.lastChecked)>23*3600*1000;}
+
+function renderProject(pid,checking){
+  currentProjId=pid;const d=getData();const p=d.projects[pid];if(!p){renderEmpty();return;}
+  const kwc=p.keywords.length;const pos=p.keywords.map(k=>p.latestRanks[k]?.pos).filter(x=>x!=null);
+  const ranked=pos.length,top10=pos.filter(x=>x<=10).length,avg=pos.length?Math.round(pos.reduce((a,b)=>a+b,0)/pos.length):null;
+  const locLabel=[p.city,p.state,p.country].filter(Boolean).join(', ');const stale=isStale(p);
+  const banner=(!checking&&stale&&kwc)?`<div class="banner bstale"><span>⏰ ${p.lastChecked?'Last checked '+relTime(p.lastChecked):'Never checked'}</span><button class="bbntn" onclick="checkAllKeywords('${p.id}')">Check Now</button></div>`:'';
+  const prog=checking?`<div class="cprog"><span class="spin">↻</span><span id="pl">Checking 0 / ${kwc}…</span><div class="pw"><div class="pf" id="pf" style="width:0%"></div></div><button class="bsm bghost" onclick="checkAbort=true" style="padding:4px 10px">Stop</button></div>`:'';
+  let tbl=`<div class="nokw"><div style="font-size:2rem">🔍</div><p style="margin-top:8px">No keywords yet.</p></div>`;
+  if(kwc){
+    const rows=p.keywords.map(kw=>{
+      const lr=p.latestRanks[kw];const hist=p.history[kw]||[];
+      const rc=lr!==undefined?(checking?`<span class="rb rno">—</span>`:rankBadge(lr.pos)):`<span class="rb rno">—</span>`;
+      const chg=lr&&lr.change!=null?(lr.change>0?`<span class="cup">↑${lr.change}</span>`:lr.change<0?`<span class="cdn">↓${Math.abs(lr.change)}</span>`:`<span class="cna">—</span>`):`<span class="cna">new</span>`;
+      const sp=hist.length>=2?sparkline(hist):`<span style="color:var(--muted);font-size:.75rem">—</span>`;
+      return`<tr data-kw="${ea(kw)}"><td><span class="kwn">${esc(kw)}</span></td><td class="rc">${rc}</td><td>${chg}</td><td style="cursor:pointer" onclick="showHistory('${ea(pid)}','${ea(kw)}')">${sp}</td><td style="font-size:.75rem;color:var(--muted)">${lr?lr.date:''}</td><td><div class="ka"><button class="bic" onclick="showHistory('${ea(pid)}','${ea(kw)}')">📈</button><button class="bic" onclick="cfmDelKw('${ea(pid)}','${ea(kw)}')">×</button></div></td></tr>`;
+    }).join('');
+    tbl=`<table class="kt"><thead><tr><th>Keyword</th><th>Rank</th><th>Change</th><th>Trend</th><th>Date</th><th></th></tr></thead><tbody>${rows}</tbody></table>`;
+  }
+  document.getElementById('mainArea').innerHTML=`
+    <div class="ph"><div class="ph-top"><div><h1>${esc(p.name)}</h1><span class="dbadge">🌐 ${esc(p.domain)}</span></div>
+    <div class="pa">${kwc?`<button class="bsm bcheck" onclick="checkAllKeywords('${p.id}')" ${checking||isChecking?'disabled':''}>${checking?'<span class="spin">↻</span> Checking…':'▶ Check Rankings'}</button>`:''}<button class="bsm boutl" onclick="openModal('addKw')">＋ Keywords</button><button class="bsm bghost" onclick="cfmDelProj('${p.id}')">Delete</button></div></div>
+    <div class="irow"><span class="chip">📍 ${esc(locLabel||p.country)}</span>${p.lastChecked?`<span class="chip">🕐 ${relTime(p.lastChecked)}</span>`:''}<span class="chip">🔑 ${kwc} keywords</span><span class="chip" style="font-size:.65rem;color:var(--muted)" title="UULE: ${makeUULE(p.location)}">UULE: ${p.location?'✓':'–'}</span></div></div>
+    ${prog}${banner}
+    <div class="sbar"><div class="sc"><div class="sl">Keywords</div><div class="sv neu">${kwc}</div></div><div class="sc"><div class="sl">Ranked</div><div class="sv ${ranked?'good':'neu'}">${ranked}</div></div><div class="sc"><div class="sl">Top 10</div><div class="sv ${top10?'good':'neu'}">${top10}</div></div><div class="sc"><div class="sl">Avg Pos</div><div class="sv ${avg?rcol(avg):'neu'}">${avg||'—'}</div></div></div>
+    <div class="kw-wrap">${tbl}</div>`;
+}
+
+function rankBadge(pos){if(!pos)return`<span class="rb rno">&gt;100</span>`;const c=pos<=3?'r1':pos<=10?'r4':pos<=20?'r11':pos<=50?'r21':'r51';return`<span class="rb ${c}">#${pos}</span>`;}
+function rcol(p){return p<=10?'good':p<=30?'warn':'bad';}
+function sparkline(hist,w=88,h=28){const data=hist.slice(-14);if(data.length<2)return'';const pos=data.map(d=>d.pos===null?101:(d.pos||101));const mn=Math.min(...pos),mx=Math.max(...pos),rng=Math.max(mx-mn,5);const pts=pos.map((p,i)=>{const x=i/(pos.length-1)*w;const y=h-((mx-p)/rng)*(h-4)-2;return`${x.toFixed(1)},${y.toFixed(1)}`;}).join(' ');const lp=pos[pos.length-1];const col=lp<=10?'var(--green)':lp<=30?'var(--accent)':'var(--red)';const lx=w,ly=h-((mx-lp)/rng)*(h-4)-2;return`<svg viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" style="display:block"><polyline points="${pts}" fill="none" stroke="${col}" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/><circle cx="${lx}" cy="${ly.toFixed(1)}" r="2.5" fill="${col}"/></svg>`;}
+
+function showHistory(pid,kw){
+  const d=getData();const p=d.projects[pid];if(!p)return;
+  const hist=(p.history[kw]||[]).slice(-14);document.getElementById('histTitle').textContent=`"${kw}"`;
+  if(!hist.length){document.getElementById('histBody').innerHTML=`<p style="color:var(--muted);text-align:center;padding:20px">No history yet.</p>`;}
+  else{const sp=sparkline(hist,460,80);const positions=hist.map(e=>e.pos||101).filter(x=>x<101);const minP=positions.length?Math.min(...positions):null,maxP=positions.length?Math.max(...positions):null;const rows=[...hist].reverse().map(e=>{const lbl=e.pos?`#${e.pos}`:'>100';const bw=e.pos?Math.max(4,Math.round((1-e.pos/101)*100)):2;return`<div class="hr"><span style="color:var(--muted)">${e.date}</span><div class="hb"><div class="hbf" style="width:${bw}%"></div></div><span style="font-weight:600">${lbl}</span></div>`;}).join('');document.getElementById('histBody').innerHTML=`<div style="background:var(--bg3);border-radius:8px;padding:12px;margin-bottom:12px">${sp}</div><div class="hw">${rows}</div><div style="display:flex;gap:16px;margin-top:12px;font-size:.8rem;color:var(--muted)"><span>Best: <strong style="color:var(--green)">${minP?'#'+minP:'—'}</strong></span><span>Worst: <strong style="color:var(--red)">${maxP?'#'+maxP:'—'}</strong></span><span>${hist.length} pts</span></div>`;}
+  openModal('history');
+}
+
+// ── MODALS ────────────────────────────────────────────────────────────────────
+function openModal(name){document.getElementById('overlay').style.display='flex';['newProj','addKw','history','confirm'].forEach(n=>{const el=document.getElementById('modal'+n.charAt(0).toUpperCase()+n.slice(1));if(el)el.style.display=n===name?'block':'none';});}
+function closeModal(){document.getElementById('overlay').style.display='none';}
+
+function onCountryChange(){
+  const sel=document.getElementById('np_country');
+  const code=sel.value;const geo=GEO[code];
+  const stateEl=document.getElementById('np_state');
+  const cityEl=document.getElementById('np_city');
+  stateEl.innerHTML='<option value="">— Any state —</option>';
+  cityEl.innerHTML='<option value="">— Any city —</option>';
+  if(geo&&geo.s){
+    Object.keys(geo.s).sort().forEach(st=>{
+      const o=document.createElement('option');o.value=st;o.textContent=st;stateEl.appendChild(o);
+    });
+  }
+  updHint();
+}
+
+function onStateChange(){
+  const cSel=document.getElementById('np_country');const sSel=document.getElementById('np_state');
+  const code=cSel.value;const state=sSel.value;
+  const cityEl=document.getElementById('np_city');
+  cityEl.innerHTML='<option value="">— Any city —</option>';
+  if(code&&state&&GEO[code]&&GEO[code].s&&GEO[code].s[state]){
+    GEO[code].s[state].forEach(city=>{
+      const o=document.createElement('option');o.value=city;o.textContent=city;cityEl.appendChild(o);
+    });
+  }
+  updHint();
+}
+
+function updHint(){
+  const cSel=document.getElementById('np_country');
+  const code=cSel.value;
+  const country=GEO[code]?GEO[code].n:code;
+  const state=document.getElementById('np_state').value;
+  const city=document.getElementById('np_city').value;
+  const loc=[city,state,country].filter(Boolean).join(', ');
+  document.getElementById('np_prev').textContent=loc?'📍 '+loc:'';
+}
+
+function submitNewProj(){
+  const name=document.getElementById('np_name').value.trim();
+  const domain=document.getElementById('np_domain').value.trim();
+  const cSel=document.getElementById('np_country');const code=cSel.value;
+  const geo=GEO[code];
+  const city=document.getElementById('np_city').value.trim();
+  const state=document.getElementById('np_state').value.trim();
+  if(!name){toast('Enter project name','error');return;}
+  if(!domain){toast('Enter domain','error');return;}
+  const id=createProject(name,domain,city,state,code,geo?.gl||'us',geo?.hl||'en');
+  closeModal();renderSidebar();selectProject(id);
+  toast(`Project "${name}" created!`,'success');
+  document.getElementById('np_name').value='';
+  document.getElementById('np_city').value='';
+  document.getElementById('np_state').value='';
+  document.getElementById('np_prev').textContent='';
+}
+
+function submitAddKw(){
+  if(!currentProjId)return;
+  const kws=document.getElementById('kw_inp').value.split('\n').map(k=>k.trim().toLowerCase()).filter(Boolean);
+  if(!kws.length){toast('Enter at least one keyword','error');return;}
+  addKeywords(currentProjId,kws);closeModal();document.getElementById('kw_inp').value='';
+  renderProject(currentProjId,false);toast(`${kws.length} keyword${kws.length>1?'s':''} added!`,'success');
+}
+
+function cfmDelProj(id){const p=getData().projects[id];if(!p)return;document.getElementById('cfmT').textContent='Delete Project';document.getElementById('cfmM').textContent=`Delete "${p.name}" and all history?`;document.getElementById('cfmBtn').onclick=()=>{deleteProject(id);closeModal();};openModal('confirm');}
+function cfmDelKw(pid,kw){document.getElementById('cfmT').textContent='Remove Keyword';document.getElementById('cfmM').textContent=`Remove "${kw}" and all its history?`;document.getElementById('cfmBtn').onclick=()=>{removeKeyword(pid,kw);closeModal();renderProject(pid,false);toast('Keyword removed','info');};openModal('confirm');}
+function selectProject(id){currentProjId=id;renderSidebar();renderProject(id,false);}
+let toastTimer;
+function toast(msg,type='info'){const el=document.getElementById('toast');el.textContent=msg;el.className=`toast ${type} show`;clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.className='toast',3500);}
+
+function init(){
+  const sel=document.getElementById('np_country');
+  COUNTRIES.forEach(c=>{const o=document.createElement('option');o.value=c.code;o.textContent=c.n;if(c.code==='pk')o.selected=true;sel.appendChild(o);});
+  onCountryChange();
+  const d=getData();const ids=Object.keys(d.projects);
+  renderSidebar();ids.length?selectProject(ids[0]):renderEmpty();
+}
+document.addEventListener('DOMContentLoaded',init);
+</script>
+</body>
+</html>
